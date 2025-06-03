@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login / Register</title>
+  <link href="login_style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="header">
+    <div class="logo">To-Do List</div>
+  </div>
+
+  <div class="container">
+    <div class="form-box">
+      <h2>Регистрация</h2>
+      <input type="text" id="reg-username" placeholder="Имя пользователя" required>
+      <input type="email" id="reg-email" placeholder="Электронная почта" required>
+      <input type="password" id="reg-password" placeholder="Пароль" required>
+      <button id="register-btn">Зарегистрироваться</button>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+  $(document).ready(function() {
+    $("#register-btn").click(function() {
+      const username = $("#reg-username").val();
+      const email = $("#reg-email").val();
+      const password = $("#reg-password").val();
+
+      if (username && email && password) {
+        localStorage.setItem('currentUser', JSON.stringify({
+          username: username,
+          email: email
+        }));
+        window.location.href = "dashboard.html";
+      }
+    });
+  });
+  </script>
+</body>
+</html>

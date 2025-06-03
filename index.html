@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do List</title>
+  <link href="index_style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="header">
+    <div class="logo">To-Do List</div>
+    <div class="nav">
+      <a href="login.html">Register/Login</a>
+    </div>
+  </div>
+
+<script>
+$(document).ready(function() {
+  $('#generate-number').click(function() {
+    const randomNum = Math.floor(Math.random() * 100) + 1;
+    let message = `Your number: ${randomNum}<br>`;
+    
+    message += randomNum % 2 === 0 ? "Even number" : "Odd number";
+    message += "<br>";
+    
+    message += randomNum > 50 ? "Greater than 50" : "50 or less";
+    
+    $('#number-result').html(message);
+  });
+});
+</script>
+
+  <div class="container">
+    <div class="promo">
+      <div class="promo-text">Организуйте свои задачи легко и красиво!</div>
+      <div class="signup-box">
+        <input type="email" id="newsletter-email" placeholder="Оставьте свою почту">
+        <button id="newsletter-btn">Зарегистрируйтесь – это бесплатно</button>
+      </div>
+    </div>
+    <div class="image-container">
+      <img src="todo.png" alt="To-Do List Illustration">
+    </div>
+  </div>
+
+  <div class="quote-container" id="quote-container"></div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+  $(document).ready(function() {
+    const quotes = [
+      {author: "Нуркелды", text: "«Простой, понятный и очень удобный»."},
+      {author: "Елнур", text: "«Ушкир»"},
+      {author: "Турар", text: "«Просто великолепный»"}
+    ];
+
+    function displayQuotes() {
+      const container = $("#quote-container");
+      container.empty();
+      quotes.forEach(quote => {
+        container.append(`
+          <div class="quote-box">
+            <span>${quote.author}</span>
+            <p>${quote.text}</p>
+          </div>
+        `);
+      });
+    }
+
+    $("#newsletter-btn").click(function() {
+      const email = $("#newsletter-email").val();
+      if (email) {
+        alert("Спасибо за подписку!");
+        $("#newsletter-email").val("");
+      }
+    });
+
+    displayQuotes();
+  });
+  </script>
+</body>
+</html>

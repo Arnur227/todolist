@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Категории | To-Do List</title>
+  <link href="categories_style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .even-category { background-color: rgba(25, 135, 84, 0.1); }
+    .odd-category { background-color: rgba(13, 110, 253, 0.1); }
+    .category-card { transition: all 0.3s ease; }
+    .category-card:hover { transform: scale(1.02); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    .random-category-btn { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-info px-4">
+    <a class="navbar-brand text-white fw-bold" href="index.html">To-Do List</a>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link text-white" href="dashboard.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="profile.html">Profile</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="container my-5">
+    <h2 class="mb-4">Категории задач</h2>
+    <div class="random-category-container bg-light p-3 mb-4 rounded text-center">
+      <h4>Генератор случайных категорий</h4>
+      <button id="generate-category" class="btn btn-info mb-2">Сгенерировать категорию</button>
+      <div id="category-result" class="fw-bold fs-4"></div>
+    </div>
+    <div class="category-comparison mb-4 p-3 bg-light rounded">
+      <h5>Сравнение категорий</h5>
+      <div class="row g-2 mb-2">
+        <div class="col-md-5">
+          <input type="text" class="form-control" id="category1" placeholder="Категория 1">
+        </div>
+        <div class="col-md-5">
+          <input type="text" class="form-control" id="category2" placeholder="Категория 2">
+        </div>
+        <div class="col-md-2">
+          <button id="compare-category-btn" class="btn btn-sm btn-primary w-100">Сравнить</button>
+        </div>
+      </div>
+      <div id="comparison-result" class="fw-bold"></div>
+    </div>
+
+    <form id="category-form" class="mb-4">
+      <div class="row g-2">
+        <div class="col-md-8">
+          <input type="text" class="form-control" placeholder="Введите новую категорию" id="category-input" required>
+        </div>
+        <div class="col-md-4">
+          <button type="submit" class="btn btn-primary w-100">Добавить категорию</button>
+        </div>
+      </div>
+    </form>
+
+
+    <div class="grid-container mb-4" id="category-list"></div>
+
+
+    <div class="suggested-categories mt-5">
+      <h4 class="mb-3">Рекомендуемые категории</h4>
+      <div class="alert alert-info">
+        Нажмите на категорию, чтобы добавить её в ваш список
+      </div>
+      <ul id="suggested-list" class="list-group"></ul>
+    </div>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  $(document).ready(function() {
+    const categoryForm = $('#category-form');
+    const categoryInput = $('#category-input');
+    const categoryList = $('#category-list');
+    const suggestedList = $('#suggested-list');
+    const allCategories = ['Работа', 'Личное', 'Покупки', 'Здоровье', 'Финансы', 
+                         'Образование', 'Семья', 'Идеи', 'Встречи', 'Проекты'];
+    
+    $('#generate-category').click(function() {
+      const randomIndex = Math.floor(Math.random() * allCategories.length);
+      const randomCategory = allCategories[randomIndex];
+      $('#category-result').text(randomCategory);
+      
+      categoryInput.val(randomCategory).focus();
+    });
+
+    $('#compare-category-btn').click(function() {
+      const cat1 = $('#category1').val().trim();
+      const cat2 = $('#category2').val().trim();
+      
+      if (!cat1 || !cat2) {
+        $('#comparison-result').text("Введите обе категории для сравнения").addClass('text-danger');
+        return;
+      }
+      
+      let result;
+      if (cat1.length > cat2.length) {
+        result = `"${cat1}" длиннее чем "${cat2}"`;
+      } else if (cat2.length > cat1.length) {
+        result = `"${cat2}" длиннее чем "${cat1}"`;
+      } else {
+        result = `Категории одинаковой длины`;
+      }
+      
+      $('#comparison-result').text(result).removeClass('text-danger');
+    });
+    function showSuggestedCategories() {
+      suggestedList.empty();
+      
+      allCategories.forEach((cat, index) => {
+        const li = $('<li>', {
+          class: `list-group-item ${index % 2 === 0 ? 'even-category' : 'odd-category'}`,
+          text: cat
+        }).click(function() {
+          categoryInput.val(cat).focus();
+        });
+        suggestedList.append(li);
+      });
+    }
+    function loadCategories() {
+      const categories = JSON.parse(localStorage.getItem('categories')) || [];
+      categoryList.empty();
+      categories.forEach(cat => {
+        const card = createCategoryCard(cat);
+        categoryList.append(card);
+      });
+    }
+
+    function saveCategories(categories) {
+      localStorage.setItem('categories', JSON.stringify(categories));
+    }
+
+    function createCategoryCard(name) {
+      const card = $('<div>', {
+        class: 'category-card bg-white p-3 mb-3 rounded shadow-sm'
+      });
+      
+      const nameSpan = $('<span>', {
+        class: 'fw-bold me-2',
+        text: name
+      });
+      
+      const deleteBtn = $('<button>', {
+        class: 'btn btn-outline-danger btn-sm float-end',
+        html: '&times;'
+      });
+      
+      deleteBtn.on('click', function() {
+        card.fadeOut(300, function() {
+          card.remove();
+          const categories = JSON.parse(localStorage.getItem('categories')) || [];
+          const updated = categories.filter(c => c !== name);
+          saveCategories(updated);
+        });
+      });
+      
+      card.append(nameSpan, deleteBtn);
+      return card;
+    }
+
+    categoryForm.on('submit', function(e) {
+      e.preventDefault();
+      const name = categoryInput.val().trim();
+      
+      if (name) {
+        const categories = JSON.parse(localStorage.getItem('categories')) || [];
+        if (!categories.includes(name)) {
+          categories.push(name);
+          saveCategories(categories);
+          const card = createCategoryCard(name);
+          card.hide().appendTo(categoryList).fadeIn(300);
+          categoryInput.val('');
+        }
+      }
+    });
+
+    loadCategories();
+    showSuggestedCategories();
+  });
+  </script>
+</body>
+</html>

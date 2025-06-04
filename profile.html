@@ -4,88 +4,148 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Профиль | To-Do List</title>
-  <link href="profile_style.css" rel="stylesheet">
+  <link href="css/profile_style.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-  <div class="header">
-    <div class="logo">To-Do List</div>
-    <div class="nav">
+  <header class="header">
+    <a href="index.html" class="logo-link">
+      <div class="logo">To-Do List</div>
+    </a>
+    <nav class="nav">
       <a href="dashboard.html">Dashboard</a>
       <a href="categories.html">Categories</a>
       <a href="contact.html">Contact</a>
-    </div>
-  </div>
-
-  <div class="profile-container">
+    </nav>
+  </header>
+  
+  <main class="profile-container">
     <div class="profile-header">
       <div class="avatar"></div>
       <h3 id="profile-title">Ваш профиль</h3>
     </div>
-    
+
     <form id="profile-form">
       <div class="mb-3">
         <label class="form-label">Имя</label>
-        <input type="text" class="form-control" id="profile-name" value="Нурлан" required>
+        <input type="text" class="form-control" id="profile-name" value="Нурлан">
+        <div class="invalid-feedback" id="profile-name-feedback"></div>
       </div>
       <div class="mb-3">
         <label class="form-label">Email</label>
-        <input type="email" class="form-control" id="profile-email" value="nurlan@example.com" required>
+        <input type="email" class="form-control" id="profile-email" value="nurlan@example.com">
+        <div class="invalid-feedback" id="profile-email-feedback"></div>
       </div>
       <div class="mb-3">
         <label class="form-label">Пароль</label>
-        <input type="password" class="form-control" id="profile-password" value="123456" required>
+        <input type="password" class="form-control" id="profile-password" value="123456">
+        <div class="invalid-feedback" id="profile-password-feedback"></div>
       </div>
       <button type="submit" class="btn btn-primary w-100">Сохранить изменения</button>
     </form>
 
     <button class="btn btn-danger logout-btn" id="logout-btn">Выйти</button>
-  </div>
+  </main>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-  $(document).ready(function() {
-    const profileForm = $('#profile-form');
-    const logoutBtn = $('#logout-btn');
-    const profileTitle = $('#profile-title');
+    $(document).ready(function() {
+      const profileForm = $('#profile-form');
+      const logoutBtn = $('#logout-btn');
+      const profileTitle = $('#profile-title');
 
-    function loadProfile() {
-      const user = JSON.parse(localStorage.getItem('currentUser')) || {
-        name: 'Нурлан',
-        email: 'nurlan@example.com'
-      };
-      $('#profile-name').val(user.name || 'Нурлан');
-      $('#profile-email').val(user.email || 'nurlan@example.com');
-      profileTitle.text(`${user.name || 'Ваш'} профиль`);
-    }
+      const profileNameInput = $('#profile-name');
+      const profileEmailInput = $('#profile-email');
+      const profilePasswordInput = $('#profile-password');
 
-    profileForm.on('submit', function(e) {
-      e.preventDefault();
-      const name = $('#profile-name').val();
-      const email = $('#profile-email').val();
-      const password = $('#profile-password').val();
+      const nameFeedback = $('#profile-name-feedback');
+      const emailFeedback = $('#profile-email-feedback');
+      const passwordFeedback = $('#profile-password-feedback');
 
-      localStorage.setItem('currentUser', JSON.stringify({
-        name: name,
-        email: email
-      }));
+      function clearValidationErrors() {
+        profileNameInput.removeClass('is-invalid');
+        nameFeedback.hide();
+        profileEmailInput.removeClass('is-invalid');
+        emailFeedback.hide();
+        profilePasswordInput.removeClass('is-invalid');
+        passwordFeedback.hide();
+      }
 
-      profileTitle.text(`${name} профиль`);
-      
-      $('<div class="alert alert-success mt-3">Профиль успешно сохранен!</div>')
-        .insertBefore(profileForm)
-        .delay(2000)
-        .fadeOut();
+      function loadProfile() {
+        const user = JSON.parse(localStorage.getItem('currentUser')) || {
+          name: 'Нурлан',
+          email: 'nurlan@example.com'
+        };
+        profileNameInput.val(user.name || 'Нурлан');
+        profileEmailInput.val(user.email || 'nurlan@example.com');
+        profilePasswordInput.val('********');
+        profileTitle.text(`${user.name || 'Ваш'} профиль`);
+      }
+
+      profileForm.on('submit', function(e) {
+        e.preventDefault();
+        clearValidationErrors();
+
+        let isValid = true;
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const passwordMinLength = 6;
+
+        if (profileNameInput.val().trim() === '') {
+          profileNameInput.addClass('is-invalid');
+          nameFeedback.text('Пожалуйста, введите ваше имя.').show();
+          isValid = false;
+        }
+
+        if (profileEmailInput.val().trim() === '') {
+          profileEmailInput.addClass('is-invalid');
+          emailFeedback.text('Пожалуйста, введите ваш email.').show();
+          isValid = false;
+        } else if (!emailPattern.test(profileEmailInput.val().trim())) {
+          profileEmailInput.addClass('is-invalid');
+          emailFeedback.text('Пожалуйста, введите корректный email адрес.').show();
+          isValid = false;
+        }
+
+        if (profilePasswordInput.val().trim() !== '********' && profilePasswordInput.val().trim() !== '') {
+          if (profilePasswordInput.val().trim().length < passwordMinLength) {
+            profilePasswordInput.addClass('is-invalid');
+            passwordFeedback.text(`Пароль должен быть не менее ${passwordMinLength} символов.`).show();
+            isValid = false;
+          }
+        } else if (profilePasswordInput.val().trim() === '') {
+            profilePasswordInput.addClass('is-invalid');
+            passwordFeedback.text('Пожалуйста, введите пароль.').show();
+            isValid = false;
+        }
+
+        if (isValid) {
+          const name = profileNameInput.val().trim();
+          const email = profileEmailInput.val().trim();
+
+          localStorage.setItem('currentUser', JSON.stringify({
+            name: name,
+            email: email
+          }));
+
+          profileTitle.text(`${name} профиль`);
+
+          $('<div class="alert alert-success mt-3">Профиль успешно сохранен!</div>')
+            .insertBefore(profileForm)
+            .delay(2000)
+            .fadeOut(function() {
+              $(this).remove();
+            });
+        }
+      });
+
+      logoutBtn.on('click', function() {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+      });
+
+      loadProfile();
     });
-
-    logoutBtn.on('click', function() {
-      localStorage.removeItem('currentUser');
-      window.location.href = 'login.html';
-    });
-
-    loadProfile();
-  });
   </script>
 </body>
 </html>

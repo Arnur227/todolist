@@ -1,0 +1,160 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f1f7fa;
+}
+
+.dashboard {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.dashboard section {
+  flex: 1;
+  min-width: 300px;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.navbar {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-delete {
+  margin-left: 10px;
+  background-color: #dc3545;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+}
+
+.btn-delete:hover {
+  background-color: #b02a37;
+}
+
+.even-task {
+  background-color: rgba(25, 135, 84, 0.1);
+}
+
+.odd-task {
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+.element {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.editable {
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.editable:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.edit-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.edit-buttons {
+  margin-top: 5px;
+  display: flex;
+  gap: 5px;
+}
+
+.task-content {
+  flex-grow: 1;
+}
+
+.completed {
+  opacity: 0.7;
+  text-decoration: line-through;
+}
+
+.task-item {
+  transition: all 0.3s ease;
+}
+
+@keyframes taskComplete {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.task-complete-animation {
+  animation: taskComplete 0.5s ease;
+}
+
+.form-control.is-invalid, .form-select.is-invalid {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  color: #dc3545;
+  font-size: 0.875em;
+  margin-top: 0.25rem;
+  display: none;
+}
+
+.form-control.is-invalid + .invalid-feedback,
+.form-select.is-invalid + .invalid-feedback {
+  display: block;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minminmax(300px, 1fr));
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .navbar-nav {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .navbar-nav .nav-item {
+    margin: 5px 0;
+  }
+
+  .btn-delete {
+    font-size: 1rem;
+  }
+
+  .form-control, .form-select, button {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .nav {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .nav a {
+    padding: 10px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}

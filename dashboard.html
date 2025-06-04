@@ -4,53 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dashboard | To-Do List</title>
-  <link href="dashboard_style.css" rel="stylesheet">
+  <link href="css/dashboard_style.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    .editable {
-      cursor: pointer;
-      transition: all 0.2s;
-      padding: 8px;
-      border-radius: 4px;
-    }
-    .editable:hover {
-      background-color: rgba(0, 0, 0, 0.05);
-    }
-    .edit-input {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      margin-bottom: 5px;
-    }
-    .edit-buttons {
-      margin-top: 5px;
-      display: flex;
-      gap: 5px;
-    }
-    .task-content {
-      flex-grow: 1;
-    }
-    .completed {
-      opacity: 0.7;
-      text-decoration: line-through;
-    }
-    .task-item {
-      transition: all 0.3s ease;
-    }
-    @keyframes taskComplete {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-    .task-complete-animation {
-      animation: taskComplete 0.5s ease;
-    }
-  </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
-  <nav class="navbar navbar-expand-lg navbar-light bg-info px-4">
+<body id="dashboard-page">
+
+  <header class="navbar navbar-expand-lg navbar-light bg-info px-4">
     <a class="navbar-brand text-white fw-bold" href="index.html">To-Do List</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
       <ul class="navbar-nav">
         <li class="nav-item"><a class="nav-link text-white" href="categories.html">Categories</a></li>
@@ -58,18 +22,18 @@
         <li class="nav-item"><a class="nav-link text-white" href="contact.html">Contact</a></li>
       </ul>
     </div>
-  </nav>
+  </header>
 
   <main class="container my-4">
     <h2 class="mb-4">Панель задач</h2>
-    
+
     <div class="mb-4 d-flex flex-wrap gap-2">
       <button class="btn btn-outline-secondary btn-sm filter-btn" data-filter="all">Все</button>
       <button class="btn btn-outline-success btn-sm filter-btn" data-filter="done">Выполненные</button>
       <button class="btn btn-outline-warning btn-sm filter-btn" data-filter="inprogress">Невыполненные</button>
     </div>
 
-    <div class="dashboard">
+    <div class="dashboard-grid">
       <section>
         <h4 class="mb-3">Ваши задачи <span class="badge bg-primary" id="task-count">0</span></h4>
         <ul class="list-group" id="task-list"></ul>
@@ -79,239 +43,361 @@
         <h4 class="mb-3">Добавить новую задачу</h4>
         <form id="task-form">
           <div class="mb-2">
-            <input type="text" class="form-control" placeholder="Введите задачу" id="task-input" required>
+            <input type="text" class="form-control" placeholder="Введите задачу" id="task-input">
+            <div class="invalid-feedback" id="task-input-feedback"></div>
           </div>
           <div class="mb-2">
-            <select class="form-select" id="category-select" required>
+            <select class="form-select" id="category-select">
               <option value="" selected disabled>Выберите категорию</option>
             </select>
+            <div class="invalid-feedback" id="category-select-feedback"></div>
           </div>
           <button type="submit" class="btn btn-primary w-100">Добавить</button>
         </form>
       </section>
     </div>
+
+    <section class="api-tasks-section my-5 p-3 bg-light rounded shadow-sm">
+      <h3 class="mb-3">Пример данных из внешнего API</h3>
+      <div id="api-todos" class="list-group">
+        <p id="api-loading" class="text-muted">Загрузка данных из внешнего источника...</p>
+        <p id="api-error" class="text-danger mt-2" style="display:none;"></p>
+      </div>
+    </section>
   </main>
- 
-  <audio id="complete-sound" src="sounds/complete.mp3" preload="auto"></audio>
-  <audio id="add-sound" src="sounds/add.mp3" preload="auto"></audio>
+
+  <audio id="complete-sound" src="assets/sounds/complete.mp3" preload="auto"></audio>
+  <audio id="add-sound" src="assets/sounds/add.mp3" preload="auto"></audio>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-  $(document).ready(function() {
-    const taskList = $("#task-list");
-    const taskCount = $("#task-count");
-    const categorySelect = $("#category-select");
-    const taskForm = $("#task-form");
-    const completeSound = document.getElementById('complete-sound');
-    const addSound = document.getElementById('add-sound');
+    $(document).ready(function() {
+      const SELECTORS = {
+        TASK_LIST: "#task-list",
+        TASK_COUNT: "#task-count",
+        CATEGORY_SELECT: "#category-select",
+        TASK_INPUT: "#task-input",
+        TASK_FORM: "#task-form",
+        COMPLETE_SOUND: "#complete-sound",
+        ADD_SOUND: "#add-sound",
+        TASK_INPUT_FEEDBACK: "#task-input-feedback",
+        CATEGORY_SELECT_FEEDBACK: "#category-select-feedback",
+        FILTER_BUTTON: ".filter-btn",
+        API_TODOS: "#api-todos",
+        API_LOADING: "#api-loading",
+        API_ERROR: "#api-error",
+        TASK_ITEM: ".task-item",
+        TOGGLE_STATUS_BTN: ".toggle-status",
+        DELETE_BTN: ".btn-delete",
+        TASK_TEXT_SPAN: ".task-text",
+        BADGE_SPAN: ".badge",
+        EDIT_INPUT: ".edit-input",
+        EDIT_BUTTONS_DIV: ".edit-buttons"
+      };
 
-    loadCategories();
-    loadTasks();
-    updateTaskCount();
+      const CSS_CLASSES = {
+        IS_INVALID: "is-invalid",
+        COMPLETED: "completed",
+        TASK_COMPLETE_ANIMATION: "task-complete-animation",
+        BTN_SUCCESS: "btn-success",
+        BTN_OUTLINE_SECONDARY: "btn-outline-secondary"
+      };
 
-    function loadCategories() {
-      const categories = JSON.parse(localStorage.getItem('categories')) || [];
-      categorySelect.empty().append('<option value="" selected disabled>Выберите категорию</option>');
-      categories.forEach(cat => {
-        categorySelect.append($('<option>', { value: cat, text: cat }));
-      });
-    }
+      const STATUSES = {
+        DONE: "done",
+        IN_PROGRESS: "inprogress",
+        ALL: "all"
+      };
 
-    function loadTasks() {
-      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-      taskList.empty();
-      tasks.forEach(task => {
-        const li = createTaskElement(task.title, task.category, task.status);
-        taskList.append(li);
-      });
-      applyFilter('all');
-    }
+      const API_URL = 'https://jsonplaceholder.typicode.com/todos?_limit=7';
+      const LOCAL_STORAGE_KEYS = {
+        CATEGORIES: 'categories',
+        TASKS: 'tasks'
+      };
 
-    function saveTasks() {
-      const tasks = [];
-      $("#task-list li").each(function() {
-        tasks.push({
-          title: $(this).find(".task-text").text(),
-          category: $(this).find(".badge").text(),
-          status: $(this).find(".toggle-status").attr("data-status")
+      const taskList = $(SELECTORS.TASK_LIST);
+      const taskCount = $(SELECTORS.TASK_COUNT);
+      const categorySelect = $(SELECTORS.CATEGORY_SELECT);
+      const taskInput = $(SELECTORS.TASK_INPUT);
+      const taskForm = $(SELECTORS.TASK_FORM);
+      const completeSound = $(SELECTORS.COMPLETE_SOUND)[0];
+      const addSound = $(SELECTORS.ADD_SOUND)[0];
+
+      const taskInputFeedback = $(SELECTORS.TASK_INPUT_FEEDBACK);
+      const categorySelectFeedback = $(SELECTORS.CATEGORY_SELECT_FEEDBACK);
+      const apiTodosContainer = $(SELECTORS.API_TODOS)[0];
+      const apiLoadingMessage = $(SELECTORS.API_LOADING)[0];
+      const apiErrorMessage = $(SELECTORS.API_ERROR)[0];
+
+      function loadCategories() {
+        const categories = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.CATEGORIES)) || [];
+        categorySelect.empty().append($('<option>', { value: "", text: "Выберите категорию", selected: true, disabled: true }));
+        categories.forEach(cat => {
+          categorySelect.append($('<option>', { value: cat, text: cat }));
         });
-      });
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-    }
+      }
 
-    function updateTaskCount() {
-      const total = taskList.children().length;
-      const completed = $(".toggle-status[data-status='done']").length;
-      taskCount.text(`${completed}/${total}`);
-    }
-
-    function createTaskElement(title, category, status = 'inprogress') {
-      const li = $('<li>', {
-        class: 'list-group-item d-flex justify-content-between align-items-start task-item',
-        css: { display: 'flex' }
-      });
-
-      const taskContent = $('<div>', {
-        class: 'task-content editable',
-        html: `
-          <span class="task-text">${title}</span>
-          <br>
-          <span class="badge bg-secondary">${category}</span>
-        `
-      });
-  
-      const controls = $('<div>', { class: 'task-controls' });
-      
-      const toggleBtn = $('<button>', {
-        class: `btn btn-sm toggle-status ${status === 'done' ? 'btn-success' : 'btn-outline-secondary'}`,
-        'data-status': status,
-        text: status === 'done' ? '✔' : 'В процессе'
-      });
-      
-      const deleteBtn = $('<button>', {
-        class: 'btn btn-sm btn-danger btn-delete',
-        html: '&times;'
-      });
-      
-      controls.append(toggleBtn, ' ', deleteBtn);
-      li.append(taskContent, controls);
-
-      setupTaskEditing(li);
-      addEventListeners(li);
-      
-      return li;
-    }
-
-    function setupTaskEditing(taskElement) {
-      const contentDiv = $(taskElement).find('.task-content');
-      const textSpan = $(taskElement).find('.task-text');
-      const badge = $(taskElement).find('.badge').clone();
-      
-      contentDiv.on('dblclick', function() {
-        const currentText = textSpan.text();
-        const input = $('<input>', {
-          type: 'text',
-          class: 'form-control edit-input',
-          value: currentText
+      function loadTasks() {
+        const tasks = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.TASKS)) || [];
+        taskList.empty();
+        tasks.forEach(task => {
+          const li = createTaskElement(task.title, task.category, task.status);
+          taskList.append(li);
         });
-        
-        const buttonDiv = $('<div>', { class: 'edit-buttons' });
-        const saveBtn = $('<button>', {
-          class: 'btn btn-sm btn-success',
-          text: 'Save'
+        applyFilter(STATUSES.ALL);
+      }
+
+      function saveTasks() {
+        const tasks = [];
+        taskList.find(SELECTORS.TASK_ITEM).each(function() {
+          tasks.push({
+            title: $(this).find(SELECTORS.TASK_TEXT_SPAN).text(),
+            category: $(this).find(SELECTORS.BADGE_SPAN).text(),
+            status: $(this).find(SELECTORS.TOGGLE_STATUS_BTN).attr("data-status")
+          });
         });
-        const cancelBtn = $('<button>', {
-          class: 'btn btn-sm btn-outline-secondary',
-          text: 'Cancel'
+        localStorage.setItem(LOCAL_STORAGE_KEYS.TASKS, JSON.stringify(tasks));
+      }
+
+      function updateTaskCount() {
+        const total = taskList.children().length;
+        const completed = taskList.find(`${SELECTORS.TOGGLE_STATUS_BTN}[data-status='${STATUSES.DONE}']`).length;
+        taskCount.text(`${completed}/${total}`);
+      }
+
+      function createTaskElement(title, category, status = STATUSES.IN_PROGRESS) {
+        const li = $('<li>', {
+          class: `list-group-item d-flex justify-content-between align-items-start ${SELECTORS.TASK_ITEM.substring(1)} ${status === STATUSES.DONE ? CSS_CLASSES.COMPLETED : ''}`,
+          css: { display: 'flex' }
         });
-        
-        buttonDiv.append(saveBtn, cancelBtn);
-        contentDiv.html(input);
-        contentDiv.append($('<br>'));
-        contentDiv.append(badge.clone());
-        contentDiv.append(buttonDiv);
-        
-        input.focus();
-        
-        const saveHandler = function() {
-          const newText = input.val().trim();
-          if (newText && newText !== currentText) {
-            textSpan.text(newText);
-            contentDiv.html(textSpan).append($('<br>')).append(badge);
-            saveTasks();
+
+        const taskContent = $('<div>', {
+          class: `task-content editable`,
+          html: `
+            <span class="task-text">${title}</span>
+            <br>
+            <span class="badge bg-secondary">${category}</span>
+          `
+        });
+
+        const controls = $('<div>', { class: 'task-controls' });
+
+        const toggleBtn = $('<button>', {
+          class: `btn btn-sm ${SELECTORS.TOGGLE_STATUS_BTN.substring(1)} ${status === STATUSES.DONE ? CSS_CLASSES.BTN_SUCCESS : CSS_CLASSES.BTN_OUTLINE_SECONDARY}`,
+          'data-status': status,
+          text: status === STATUSES.DONE ? '✔' : 'В процессе'
+        });
+
+        const deleteBtn = $('<button>', {
+          class: `btn btn-sm btn-danger ${SELECTORS.DELETE_BTN.substring(1)}`,
+          html: '&times;'
+        });
+
+        controls.append(toggleBtn, ' ', deleteBtn);
+        li.append(taskContent, controls);
+
+        setupTaskEditing(li);
+        addTaskEventListeners(li);
+
+        return li;
+      }
+
+      function setupTaskEditing(taskElement) {
+        const contentDiv = taskElement.find('.task-content');
+        const textSpan = taskElement.find(SELECTORS.TASK_TEXT_SPAN);
+        const badge = taskElement.find(SELECTORS.BADGE_SPAN).clone();
+
+        contentDiv.on('dblclick', function() {
+          const currentText = textSpan.text();
+          if (contentDiv.find(SELECTORS.EDIT_INPUT).length > 0) return;
+
+          const input = $('<input>', {
+            type: 'text',
+            class: `form-control ${SELECTORS.EDIT_INPUT.substring(1)}`,
+            value: currentText
+          });
+
+          const buttonDiv = $('<div>', { class: SELECTORS.EDIT_BUTTONS_DIV.substring(1) });
+          const saveBtn = $('<button>', {
+            class: `${CSS_CLASSES.BTN_SUCCESS} btn-sm`,
+            text: 'Сохранить'
+          });
+          const cancelBtn = $('<button>', {
+            class: `${CSS_CLASSES.BTN_OUTLINE_SECONDARY} btn-sm`,
+            text: 'Отмена'
+          });
+
+          buttonDiv.append(saveBtn, cancelBtn);
+
+          contentDiv.empty().append(input).append($('<br>')).append(badge).append(buttonDiv);
+          input.focus();
+
+          const saveHandler = function() {
+            const newText = input.val().trim();
+            if (newText && newText !== currentText) {
+              textSpan.text(newText);
+              contentDiv.empty().append(textSpan).append($('<br>')).append(badge.clone());
+              saveTasks();
+            } else {
+              cancelHandler();
+            }
+          };
+
+          const cancelHandler = function() {
+            contentDiv.empty().append(textSpan).append($('<br>')).append(badge.clone());
+          };
+
+          saveBtn.on('click', saveHandler);
+          cancelBtn.on('click', cancelHandler);
+          input.on('keypress', function(e) { if (e.which === 13) saveHandler(); });
+          input.on('keydown', function(e) { if (e.key === 'Escape') cancelHandler(); });
+        });
+      }
+
+      function addTaskEventListeners(li) {
+        const toggleBtn = li.find(SELECTORS.TOGGLE_STATUS_BTN);
+        const deleteBtn = li.find(SELECTORS.DELETE_BTN);
+
+        toggleBtn.on('click', function() {
+          const $this = $(this);
+          if ($this.attr('data-status') === STATUSES.IN_PROGRESS) {
+            try {
+              completeSound.currentTime = 0;
+              completeSound.play();
+              li.addClass(CSS_CLASSES.TASK_COMPLETE_ANIMATION);
+              setTimeout(() => li.removeClass(CSS_CLASSES.TASK_COMPLETE_ANIMATION), 500);
+            } catch (e) {
+              console.log("Ошибка звука завершения задачи:", e);
+            }
+          }
+
+          if ($this.hasClass(CSS_CLASSES.BTN_SUCCESS)) {
+            $this.removeClass(CSS_CLASSES.BTN_SUCCESS).addClass(CSS_CLASSES.BTN_OUTLINE_SECONDARY)
+              .text('В процессе').attr('data-status', STATUSES.IN_PROGRESS);
+            li.removeClass(CSS_CLASSES.COMPLETED);
           } else {
-            cancelHandler();
+            $this.removeClass(CSS_CLASSES.BTN_OUTLINE_SECONDARY).addClass(CSS_CLASSES.BTN_SUCCESS)
+              .text('✔').attr('data-status', STATUSES.DONE);
+            li.addClass(CSS_CLASSES.COMPLETED);
           }
-        };
-        
-
-        const cancelHandler = function() {
-          contentDiv.html(textSpan).append($('<br>')).append(badge);
-        };
-        
-        saveBtn.on('click', saveHandler);
-        cancelBtn.on('click', cancelHandler);
-        input.on('keypress', function(e) {
-          if (e.which === 13) saveHandler();
-        });
-        input.on('keydown', function(e) {
-          if (e.key === 'Escape') cancelHandler();
-        });
-      });
-    }
-
-    function addEventListeners(li) {
-      const toggleBtn = li.find('.toggle-status');
-      const deleteBtn = li.find('.btn-delete');
-
-      toggleBtn.on('click', function() {
-        const $this = $(this);
-        if ($this.attr('data-status') === 'inprogress') {
-          try {
-            completeSound.currentTime = 0;
-            completeSound.play();
-            li.addClass('task-complete-animation');
-            setTimeout(() => li.removeClass('task-complete-animation'), 500);
-          } catch (e) {
-            console.log("Ошибка звука:", e);
-          }
-        }
-        
-        if ($this.hasClass('btn-success')) {
-          $this.removeClass('btn-success').addClass('btn-outline-secondary')
-            .text('В процессе').attr('data-status', 'inprogress');
-          li.removeClass('completed');
-        } else {
-          $this.removeClass('btn-outline-secondary').addClass('btn-success')
-            .text('✔').attr('data-status', 'done');
-          li.addClass('completed');
-        }
-        saveTasks();
-        updateTaskCount();
-      });
-
-      deleteBtn.on('click', function() {
-        li.fadeOut(300, function() {
-          li.remove();
           saveTasks();
           updateTaskCount();
         });
-      });
-    }
 
-    taskForm.on('submit', function(e) {
-      e.preventDefault();
-      const title = $("#task-input").val().trim();
-      const category = categorySelect.val();
-      
-      if (title && category) {
-        try {
-          addSound.currentTime = 0;
-          addSound.play();
-        } catch (e) {
-          console.log("Ошибка звука:", e);
-        }
-        
-        const li = createTaskElement(title, category);
-        li.hide().appendTo(taskList).fadeIn(300);
-        taskForm.trigger('reset');
-        saveTasks();
-        updateTaskCount();
+        deleteBtn.on('click', function() {
+          li.fadeOut(300, function() {
+            li.remove();
+            saveTasks();
+            updateTaskCount();
+          });
+        });
       }
-    });
 
-    $(".filter-btn").on('click', function() {
-      applyFilter($(this).data('filter'));
-    });
+      function clearTaskFormValidationErrors() {
+        taskInput.removeClass(CSS_CLASSES.IS_INVALID);
+        taskInputFeedback.hide();
+        categorySelect.removeClass(CSS_CLASSES.IS_INVALID);
+        categorySelectFeedback.hide();
+      }
 
-    function applyFilter(filter) {
-      $("#task-list li").each(function() {
-        const status = $(this).find(".toggle-status").attr("data-status");
-        $(this).toggle(filter === 'all' || status === filter);
+      taskForm.on('submit', function(e) {
+        e.preventDefault();
+        const title = taskInput.val().trim();
+        const category = categorySelect.val();
+
+        clearTaskFormValidationErrors();
+
+        let isValid = true;
+
+        if (title === '') {
+          taskInput.addClass(CSS_CLASSES.IS_INVALID);
+          taskInputFeedback.text('Пожалуйста, введите текст задачи.').show();
+          isValid = false;
+        }
+
+        if (!category) {
+          categorySelect.addClass(CSS_CLASSES.IS_INVALID);
+          categorySelectFeedback.text('Пожалуйста, выберите категорию.').show();
+          isValid = false;
+        }
+
+        if (isValid) {
+          try {
+            addSound.currentTime = 0;
+            addSound.play();
+          } catch (e) {
+            console.log("Ошибка звука добавления задачи:", e);
+          }
+
+          const li = createTaskElement(title, category);
+          li.hide().appendTo(taskList).fadeIn(300);
+          taskForm.trigger('reset');
+          saveTasks();
+          updateTaskCount();
+        }
       });
-    }
-  });
+
+      $(SELECTORS.FILTER_BUTTON).on('click', function() {
+        applyFilter($(this).data('filter'));
+      });
+
+      function applyFilter(filter) {
+        taskList.find(SELECTORS.TASK_ITEM).each(function() {
+          const status = $(this).find(SELECTORS.TOGGLE_STATUS_BTN).attr("data-status");
+          $(this).toggle(filter === STATUSES.ALL || status === filter);
+        });
+      }
+
+      function fetchAndDisplayAPITodos() {
+        apiLoadingMessage.textContent = 'Загрузка данных из внешнего источника...';
+        if (!apiTodosContainer || !apiLoadingMessage || !apiErrorMessage) {
+          console.warn("Элементы для отображения API задач не найдены на этой странице.");
+          return;
+        }
+
+        apiLoadingMessage.style.display = 'block';
+        apiErrorMessage.style.display = 'none';
+        apiTodosContainer.innerHTML = '';
+
+        fetch(API_URL)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`Ошибка HTTP! Статус: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(todos => {
+            apiLoadingMessage.style.display = 'none';
+
+            if (todos.length === 0) {
+              apiTodosContainer.innerHTML = '<p class="text-muted">Нет данных из API.</p>';
+              return;
+            }
+
+            todos.forEach(todo => {
+              const todoItem = document.createElement('li');
+              todoItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+              todoItem.innerHTML = `
+                <span>${todo.title}</span>
+                ${todo.completed ? '<span class="badge bg-success">Выполнено</span>' : '<span class="badge bg-warning text-dark">В процессе</span>'}
+              `;
+              apiTodosContainer.appendChild(todoItem);
+            });
+          })
+          .catch(error => {
+            console.error('Ошибка при получении данных из API:', error);
+            apiLoadingMessage.style.display = 'none';
+            apiErrorMessage.textContent = `Ошибка загрузки данных: ${error.message}. Пожалуйста, попробуйте позже.`;
+            apiErrorMessage.style.display = 'block';
+          });
+      }
+
+      loadCategories();
+      loadTasks();
+      updateTaskCount();
+      fetchAndDisplayAPITodos();
+    });
   </script>
 </body>
 </html>

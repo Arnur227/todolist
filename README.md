@@ -65,7 +65,7 @@
 Если у вас есть предложения или вопросы — свяжитесь со мной:
 
 Имя: ArNurlan
-GitHub: [Ссылка на GitHub профиль]
+GitHub: https://arnur227.github.io/todolist/
 Email: ArNurlan@astanait.edu.kz
 
 

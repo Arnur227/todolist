@@ -65,12 +65,11 @@
 ✉️ Контакты
 <img width="1512" alt="image" src="https://github.com/user-attachments/assets/bfcecad9-2e26-47bf-a762-46cd6c3dbebf" />
 
-```text
+
 Если у вас есть предложения или вопросы — свяжитесь со мной:
 
 Имя: ArNurlan
-GitHub: https://arnur227.github.io/todolist/
-Email: ArNurlan@astanait.edu.kz
-```
+GitHub: (https://arnur227.github.io/todolist/)
+Email: (ArNurlan@astanait.edu.kz)
 
 
